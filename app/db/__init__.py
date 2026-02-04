@@ -1,8 +1,10 @@
 """
 Conexão com o banco de dados Supabase.
 """
+from __future__ import annotations
+
 from functools import lru_cache
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 import structlog
 from supabase import Client, create_client
@@ -46,7 +48,7 @@ class Database:
     """
     
     def __init__(self):
-        self._client: Client | None = None
+        self._client: Optional[Client] = None
     
     @property
     def client(self) -> Client:
@@ -63,7 +65,7 @@ class Database:
     # Métodos de conveniência
     # ==========================================
     
-    async def get_tenant_by_slug(self, slug: str) -> dict[str, Any] | None:
+    async def get_tenant_by_slug(self, slug: str) -> Optional[Dict[str, Any]]:
         """Busca tenant pelo slug."""
         result = (
             self.table("tenants")
@@ -78,7 +80,7 @@ class Database:
     async def get_tenant_by_evolution_instance(
         self,
         instance: str,
-    ) -> dict[str, Any] | None:
+    ) -> Optional[Dict[str, Any]]:
         """Busca tenant pela instância Evolution."""
         result = (
             self.table("tenants")
@@ -94,7 +96,7 @@ class Database:
         self,
         tenant_id: str,
         session_id: str,
-    ) -> dict[str, Any] | None:
+    ) -> Optional[Dict[str, Any]]:
         """Busca sessão ativa."""
         result = (
             self.table("sessions")
@@ -111,8 +113,8 @@ class Database:
         self,
         tenant_id: str,
         session_id: str,
-        data: dict[str, Any],
-    ) -> dict[str, Any]:
+        data: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """Cria ou atualiza sessão."""
         # Prepara dados
         session_data = {
@@ -134,7 +136,7 @@ class Database:
         self,
         tenant_id: str,
         phone: str,
-    ) -> dict[str, Any] | None:
+    ) -> Optional[Dict[str, Any]]:
         """Busca cliente pelo telefone."""
         # Normaliza telefone
         from app.utils.phone import normalize_phone
@@ -154,7 +156,7 @@ class Database:
         self,
         tenant_id: str,
         phone: str,
-    ) -> dict[str, Any] | None:
+    ) -> Optional[Dict[str, Any]]:
         """Busca snapshot completo do cliente via view."""
         from app.utils.phone import normalize_phone
         phone_normalized = normalize_phone(phone)
@@ -172,11 +174,11 @@ class Database:
     async def search_menu(
         self,
         tenant_id: str,
-        query: str | None = None,
-        category: str | None = None,
-        item_type: str | None = None,
+        query: Optional[str] = None,
+        category: Optional[str] = None,
+        item_type: Optional[str] = None,
         limit: int = 50,
-    ) -> list[dict[str, Any]]:
+    ) -> List[Dict[str, Any]]:
         """Busca itens no cardápio."""
         q = (
             self.table("menu_items")
@@ -206,7 +208,7 @@ class Database:
         self,
         tenant_id: str,
         pdv_code: str,
-    ) -> dict[str, Any] | None:
+    ) -> Optional[Dict[str, Any]]:
         """Busca item do cardápio pelo código PDV."""
         result = (
             self.table("menu_items")
@@ -223,7 +225,7 @@ class Database:
         tenant_id: str,
         district: str,
         city: str = "Itajaí",
-    ) -> dict[str, Any] | None:
+    ) -> Optional[Dict[str, Any]]:
         """Busca taxa de entrega por bairro."""
         result = (
             self.table("delivery_areas")
@@ -243,7 +245,7 @@ class Database:
         role: str,
         content: str,
         **kwargs: Any,
-    ) -> dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Adiciona mensagem ao histórico."""
         message_data = {
             "session_id": session_uuid,
@@ -259,7 +261,7 @@ class Database:
         self,
         session_uuid: str,
         limit: int = 20,
-    ) -> list[dict[str, Any]]:
+    ) -> List[Dict[str, Any]]:
         """Busca histórico de mensagens da sessão."""
         result = (
             self.table("messages")

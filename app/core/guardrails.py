@@ -9,9 +9,11 @@ Este módulo implementa:
 2. Extração de dados estruturados (telefone, endereço)
 3. Detecção de intenção sem LLM
 """
+from __future__ import annotations
+
 import re
 from enum import Enum
-from typing import Any
+from typing import Any, Dict, List, Optional, Tuple
 
 from unidecode import unidecode
 
@@ -180,7 +182,7 @@ class InputGuardrails:
         }
     
     @staticmethod
-    def _compile_patterns(patterns: list[str]) -> re.Pattern:
+    def _compile_patterns(patterns: List[str]) -> re.Pattern:
         """Compila lista de patterns em um único regex."""
         combined = "|".join(f"({p})" for p in patterns)
         return re.compile(combined, re.IGNORECASE | re.UNICODE)
@@ -201,8 +203,8 @@ class InputGuardrails:
     def classify(
         self,
         text: str,
-        context: dict[str, Any] | None = None,
-    ) -> tuple[QuickIntent, dict[str, Any]]:
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[QuickIntent, Dict[str, Any]]:
         """
         Classifica uma mensagem.
         
@@ -218,7 +220,7 @@ class InputGuardrails:
         original = text.strip()
         
         # Dict para dados extraídos
-        extracted: dict[str, Any] = {}
+        extracted: Dict[str, Any] = {}
         
         # Mensagem vazia
         if not normalized:
@@ -321,8 +323,8 @@ class InputGuardrails:
     def get_quick_response(
         self,
         intent: QuickIntent,
-        context: dict[str, Any] | None = None,
-    ) -> str | None:
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Optional[str]:
         """
         Retorna resposta rápida para intenções simples.
         
@@ -346,8 +348,8 @@ guardrails = InputGuardrails()
 
 def classify_input(
     text: str,
-    context: dict[str, Any] | None = None,
-) -> tuple[QuickIntent, dict[str, Any]]:
+    context: Optional[Dict[str, Any]] = None,
+) -> Tuple[QuickIntent, Dict[str, Any]]:
     """Função de conveniência para classificar input."""
     return guardrails.classify(text, context)
 

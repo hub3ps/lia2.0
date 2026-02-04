@@ -7,9 +7,11 @@ A FSM garante que:
 - Não há "saltos" inválidos entre estados
 - O contexto necessário para cada estado está disponível
 """
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable
+from typing import Any, Dict, List, Optional
 
 import structlog
 
@@ -63,10 +65,10 @@ class StateRequirements:
     """Requisitos e metadados de um estado."""
     
     # Campos obrigatórios no collected_data para entrar neste estado
-    required_fields: list[str] = field(default_factory=list)
+    required_fields: List[str] = field(default_factory=list)
     
     # Estados para os quais pode transicionar
-    allowed_transitions: list[ConversationState] = field(default_factory=list)
+    allowed_transitions: List[ConversationState] = field(default_factory=list)
     
     # Prompt hint para o agente
     agent_hint: str = ""
@@ -78,11 +80,11 @@ class StateRequirements:
     is_terminal: bool = False
     
     # Timeout específico (minutos, None = usa padrão)
-    timeout_minutes: int | None = None
+    timeout_minutes: Optional[int] = None
 
 
 # Definição completa da máquina de estados
-STATE_MACHINE: dict[ConversationState, StateRequirements] = {
+STATE_MACHINE: Dict[ConversationState, StateRequirements] = {
     
     ConversationState.GREETING: StateRequirements(
         required_fields=[],
@@ -222,7 +224,7 @@ class StateTransition:
     from_state: ConversationState
     to_state: ConversationState
     reason: str
-    data: dict[str, Any] = field(default_factory=dict)
+    data: Dict[str, Any] = field(default_factory=dict)
     timestamp: str = ""
 
 
@@ -232,11 +234,11 @@ class FSM:
     def __init__(
         self,
         initial_state: ConversationState = ConversationState.GREETING,
-        state_data: dict[str, Any] | None = None,
+        state_data: Optional[Dict[str, Any]] = None,
     ):
         self.current_state = initial_state
         self.state_data = state_data or {}
-        self.transition_history: list[StateTransition] = []
+        self.transition_history: List[StateTransition] = []
     
     @property
     def requirements(self) -> StateRequirements:
@@ -244,7 +246,7 @@ class FSM:
         return STATE_MACHINE[self.current_state]
     
     @property
-    def allowed_transitions(self) -> list[ConversationState]:
+    def allowed_transitions(self) -> List[ConversationState]:
         """Estados para os quais pode transicionar."""
         return self.requirements.allowed_transitions
     
@@ -271,7 +273,7 @@ class FSM:
         self,
         to_state: ConversationState,
         reason: str = "",
-        data: dict[str, Any] | None = None,
+        data: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """
         Tenta fazer a transição para outro estado.
@@ -333,7 +335,7 @@ class FSM:
         )
         self.current_state = to_state
     
-    def get_context_for_prompt(self) -> dict[str, Any]:
+    def get_context_for_prompt(self) -> Dict[str, Any]:
         """Retorna contexto do FSM para incluir no prompt."""
         return {
             "estado_atual": self.current_state.value,
@@ -349,14 +351,14 @@ class FSM:
         cart_has_items: bool = False,
         cart_has_pendencies: bool = False,
         items_confirmed: bool = False,
-        delivery_type: str | None = None,
+        delivery_type: Optional[str] = None,
         address_provided: bool = False,
         address_confirmed: bool = False,
-        payment_method: str | None = None,
+        payment_method: Optional[str] = None,
         payment_details_complete: bool = False,
         pix_proof_validated: bool = False,
         order_confirmed: bool = False,
-    ) -> ConversationState | None:
+    ) -> Optional[ConversationState]:
         """
         Sugere o próximo estado baseado no contexto.
         

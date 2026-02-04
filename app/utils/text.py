@@ -1,8 +1,10 @@
 """
 Utilitários para manipulação de texto.
 """
+from __future__ import annotations
+
 import re
-from typing import Sequence
+from typing import List, Optional, Sequence, Tuple
 
 from unidecode import unidecode
 
@@ -82,7 +84,7 @@ def truncate(text: str, max_length: int = 100, suffix: str = "...") -> str:
     return text[: max_length - len(suffix)] + suffix
 
 
-def extract_numbers(text: str) -> list[int]:
+def extract_numbers(text: str) -> List[int]:
     """
     Extrai números de um texto.
     
@@ -170,7 +172,7 @@ def find_best_match(
     query: str,
     candidates: Sequence[str],
     threshold: float = 0.6,
-) -> tuple[str | None, float]:
+) -> Tuple[Optional[str], float]:
     """
     Encontra melhor match para uma query em uma lista de candidatos.
     
@@ -216,7 +218,7 @@ def find_matches(
     candidates: Sequence[str],
     threshold: float = 0.6,
     limit: int = 5,
-) -> list[tuple[str, float]]:
+) -> List[Tuple[str, float]]:
     """
     Encontra múltiplos matches para uma query.
     

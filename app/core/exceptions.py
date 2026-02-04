@@ -13,7 +13,9 @@ Hierarquia:
   - CartError (erro no carrinho)
   - OrderError (erro no pedido)
 """
-from typing import Any
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
 
 
 class LiaError(Exception):
@@ -22,15 +24,15 @@ class LiaError(Exception):
     def __init__(
         self,
         message: str,
-        code: str | None = None,
-        details: dict[str, Any] | None = None,
+        code: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
     ):
         self.message = message
         self.code = code or "LIA_ERROR"
         self.details = details or {}
         super().__init__(message)
     
-    def to_dict(self) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "error": self.code,
             "message": self.message,
@@ -48,7 +50,7 @@ class ValidationError(LiaError):
     def __init__(
         self,
         message: str,
-        field: str | None = None,
+        field: Optional[str] = None,
         value: Any = None,
     ):
         details = {}
@@ -69,7 +71,7 @@ class ValidationError(LiaError):
 class SchemaValidationError(ValidationError):
     """Erro de validação de schema Pydantic."""
     
-    def __init__(self, message: str, errors: list[dict[str, Any]]):
+    def __init__(self, message: str, errors: List[Dict[str, Any]]):
         super().__init__(message=message)
         self.code = "SCHEMA_VALIDATION_ERROR"
         self.details["errors"] = errors
@@ -85,8 +87,8 @@ class FSMError(LiaError):
     def __init__(
         self,
         message: str,
-        from_state: str | None = None,
-        to_state: str | None = None,
+        from_state: Optional[str] = None,
+        to_state: Optional[str] = None,
     ):
         details = {}
         if from_state:
@@ -108,7 +110,7 @@ class InvalidTransitionError(FSMError):
         self,
         from_state: str,
         to_state: str,
-        allowed: list[str] | None = None,
+        allowed: Optional[List[str]] = None,
     ):
         message = f"Transição inválida de {from_state} para {to_state}"
         super().__init__(
@@ -132,7 +134,7 @@ class IntegrationError(LiaError):
         self,
         message: str,
         service: str,
-        status_code: int | None = None,
+        status_code: Optional[int] = None,
         response: Any = None,
     ):
         details = {"service": service}
@@ -156,7 +158,7 @@ class EvolutionError(IntegrationError):
     def __init__(
         self,
         message: str,
-        status_code: int | None = None,
+        status_code: Optional[int] = None,
         response: Any = None,
     ):
         super().__init__(
@@ -174,7 +176,7 @@ class SaiposError(IntegrationError):
     def __init__(
         self,
         message: str,
-        status_code: int | None = None,
+        status_code: Optional[int] = None,
         response: Any = None,
     ):
         super().__init__(
@@ -192,7 +194,7 @@ class OpenAIError(IntegrationError):
     def __init__(
         self,
         message: str,
-        status_code: int | None = None,
+        status_code: Optional[int] = None,
         response: Any = None,
     ):
         super().__init__(
@@ -210,7 +212,7 @@ class GoogleMapsError(IntegrationError):
     def __init__(
         self,
         message: str,
-        status_code: int | None = None,
+        status_code: Optional[int] = None,
         response: Any = None,
     ):
         super().__init__(
@@ -229,7 +231,7 @@ class GoogleMapsError(IntegrationError):
 class CartError(LiaError):
     """Erro relacionado ao carrinho."""
     
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
+    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
         super().__init__(
             message=message,
             code="CART_ERROR",
@@ -243,7 +245,7 @@ class ItemNotFoundError(CartError):
     def __init__(
         self,
         item_text: str,
-        suggestions: list[str] | None = None,
+        suggestions: Optional[List[str]] = None,
     ):
         details = {"item_text": item_text}
         if suggestions:
@@ -264,7 +266,7 @@ class AdditionNotAllowedError(CartError):
         self,
         product_name: str,
         addition_name: str,
-        allowed: list[str] | None = None,
+        allowed: Optional[List[str]] = None,
     ):
         details = {
             "product": product_name,
@@ -287,7 +289,7 @@ class AdditionNotAllowedError(CartError):
 class OrderError(LiaError):
     """Erro relacionado ao pedido."""
     
-    def __init__(self, message: str, details: dict[str, Any] | None = None):
+    def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
         super().__init__(
             message=message,
             code="ORDER_ERROR",
@@ -298,7 +300,7 @@ class OrderError(LiaError):
 class OrderValidationError(OrderError):
     """Pedido inválido para envio."""
     
-    def __init__(self, message: str, missing_fields: list[str] | None = None):
+    def __init__(self, message: str, missing_fields: Optional[List[str]] = None):
         details = {}
         if missing_fields:
             details["missing_fields"] = missing_fields
@@ -313,7 +315,7 @@ class OrderSubmissionError(OrderError):
     def __init__(
         self,
         message: str,
-        saipos_error: str | None = None,
+        saipos_error: Optional[str] = None,
     ):
         details = {}
         if saipos_error:
@@ -330,7 +332,7 @@ class OrderSubmissionError(OrderError):
 class SessionError(LiaError):
     """Erro relacionado à sessão."""
     
-    def __init__(self, message: str, session_id: str | None = None):
+    def __init__(self, message: str, session_id: Optional[str] = None):
         details = {}
         if session_id:
             details["session_id"] = session_id

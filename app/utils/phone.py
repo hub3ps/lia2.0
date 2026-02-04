@@ -1,7 +1,10 @@
 """
 Utilitários para manipulação de números de telefone.
 """
+from __future__ import annotations
+
 import re
+from typing import Optional
 
 
 def normalize_phone(phone: str) -> str:
@@ -74,7 +77,7 @@ def format_phone_display(phone: str) -> str:
     return digits
 
 
-def extract_ddd(phone: str) -> str | None:
+def extract_ddd(phone: str) -> Optional[str]:
     """
     Extrai o DDD de um telefone.
     

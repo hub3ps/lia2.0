@@ -6,10 +6,12 @@ Este módulo define os modelos de dados tipados que eliminam alucinação estrut
 - Se inválido, o sistema tenta self-correction
 - Garante que dados malformados nunca chegam ao processamento
 """
+from __future__ import annotations
+
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -73,12 +75,12 @@ class CartItem(BaseModel):
     quantidade: int = Field(default=1, ge=1, le=50)
     preco_unitario: Decimal = Field(..., ge=0, description="Preço base do produto")
     
-    adicionais: list[CartItemAddition] = Field(default_factory=list)
+    adicionais: List[CartItemAddition] = Field(default_factory=list)
     observacoes: str = Field(default="", max_length=500)
     
     # Campos calculados (preenchidos automaticamente)
-    preco_total_unitario: Decimal | None = None  # Preço com adicionais (1 unidade)
-    preco_total: Decimal | None = None           # Preço total (quantidade * unitário)
+    preco_total_unitario: Optional[Decimal] = None  # Preço com adicionais (1 unidade)
+    preco_total: Optional[Decimal] = None           # Preço total (quantidade * unitário)
     
     @model_validator(mode="after")
     def calculate_totals(self) -> "CartItem":
@@ -126,15 +128,15 @@ class CartPendency(BaseModel):
     
     motivo: PendencyReason
     texto_original: str = Field(..., description="O que o cliente pediu")
-    sugestoes: list[str] = Field(default_factory=list, max_length=5)
-    dados_extras: dict[str, Any] = Field(default_factory=dict)
+    sugestoes: List[str] = Field(default_factory=list, max_length=5)
+    dados_extras: Dict[str, Any] = Field(default_factory=dict)
 
 
 class CartState(BaseModel):
     """Estado completo do carrinho de compras."""
     
-    itens: list[CartItem] = Field(default_factory=list)
-    pendencias: list[CartPendency] = Field(default_factory=list)
+    itens: List[CartItem] = Field(default_factory=list)
+    pendencias: List[CartPendency] = Field(default_factory=list)
     
     @property
     def subtotal(self) -> Decimal:
@@ -195,7 +197,7 @@ class CartState(BaseModel):
         """Adiciona pendência à lista."""
         self.pendencias.append(pendency)
     
-    def resolve_pendency(self, index: int) -> CartPendency | None:
+    def resolve_pendency(self, index: int) -> Optional[CartPendency]:
         """Remove e retorna pendência pelo índice."""
         if 0 <= index < len(self.pendencias):
             return self.pendencias.pop(index)
@@ -238,7 +240,7 @@ class OrderItem(BaseModel):
     unit_price: Decimal
     total_price: Decimal
     notes: str = ""
-    additions: list[dict[str, Any]] = Field(default_factory=list)
+    additions: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class PaymentDetails(BaseModel):
@@ -248,14 +250,14 @@ class PaymentDetails(BaseModel):
     
     # Para dinheiro
     needs_change: bool = False
-    change_for: Decimal | None = None
+    change_for: Optional[Decimal] = None
     
     # Para PIX
     pix_proof_validated: bool = False
-    pix_proof_url: str | None = None
+    pix_proof_url: Optional[str] = None
     
     # Para cartão
-    card_brand: str | None = None
+    card_brand: Optional[str] = None
     
     @model_validator(mode="after")
     def validate_change(self) -> "PaymentDetails":
@@ -278,9 +280,9 @@ class DeliveryAddress(BaseModel):
     postal_code: str = ""
     
     # Geocoding
-    latitude: float | None = None
-    longitude: float | None = None
-    formatted_address: str | None = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    formatted_address: Optional[str] = None
     
     def to_display(self) -> str:
         """Formata endereço para exibição."""
@@ -299,16 +301,16 @@ class ToolCallResult(BaseModel):
     """Resultado de uma chamada de tool."""
     
     success: bool
-    data: dict[str, Any] | None = None
-    error: str | None = None
+    data: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
     should_retry: bool = False
 
 
 class InterpretedOrder(BaseModel):
     """Resultado do order interpreter."""
     
-    items: list[CartItem] = Field(default_factory=list)
-    pendencies: list[CartPendency] = Field(default_factory=list)
+    items: List[CartItem] = Field(default_factory=list)
+    pendencies: List[CartPendency] = Field(default_factory=list)
     raw_text: str = ""
     confidence: float = Field(default=1.0, ge=0, le=1)
 
@@ -321,20 +323,20 @@ class CollectedData(BaseModel):
     """Dados coletados durante a conversa."""
     
     # Cliente
-    client_name: str | None = None
-    client_phone: str | None = None
+    client_name: Optional[str] = None
+    client_phone: Optional[str] = None
     
     # Entrega
-    delivery_type: DeliveryType | None = None
-    delivery_address: DeliveryAddress | None = None
-    delivery_fee: Decimal | None = None
+    delivery_type: Optional[DeliveryType] = None
+    delivery_address: Optional[DeliveryAddress] = None
+    delivery_fee: Optional[Decimal] = None
     
     # Pagamento
-    payment: PaymentDetails | None = None
+    payment: Optional[PaymentDetails] = None
     
     # Totais
-    subtotal: Decimal | None = None
-    total: Decimal | None = None
+    subtotal: Optional[Decimal] = None
+    total: Optional[Decimal] = None
     
     # Confirmações
     items_confirmed: bool = False
@@ -350,7 +352,7 @@ class SessionContext(BaseModel):
     
     # Estado
     fsm_state: str
-    fsm_state_data: dict[str, Any] = Field(default_factory=dict)
+    fsm_state_data: Dict[str, Any] = Field(default_factory=dict)
     
     # Carrinho
     cart: CartState = Field(default_factory=CartState)
@@ -359,13 +361,13 @@ class SessionContext(BaseModel):
     collected: CollectedData = Field(default_factory=CollectedData)
     
     # Cliente (se identificado)
-    client_id: str | None = None
-    client_name: str | None = None
+    client_id: Optional[str] = None
+    client_name: Optional[str] = None
     client_is_returning: bool = False
     
     # Histórico resumido
-    last_messages: list[dict[str, str]] = Field(default_factory=list)
+    last_messages: List[Dict[str, str]] = Field(default_factory=list)
     
     # Métricas
     message_count: int = 0
-    created_at: datetime | None = None
+    created_at: Optional[datetime] = None

@@ -3,8 +3,10 @@ Lia Agent v2.0 - Aplicação FastAPI Principal
 
 Este é o ponto de entrada da aplicação.
 """
+from __future__ import annotations
+
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, Dict
 
 import structlog
 from fastapi import FastAPI, Request
@@ -128,7 +130,7 @@ async def generic_error_handler(request: Request, exc: Exception) -> JSONRespons
 # ==========================================
 
 @app.get("/")
-async def root() -> dict[str, str]:
+async def root() -> Dict[str, str]:
     """Rota raiz."""
     return {
         "app": "Lia Agent",
@@ -138,7 +140,7 @@ async def root() -> dict[str, str]:
 
 
 @app.get("/health")
-async def health() -> dict[str, Any]:
+async def health() -> Dict[str, Any]:
     """Health check básico."""
     return {
         "status": "healthy",
@@ -147,14 +149,14 @@ async def health() -> dict[str, Any]:
 
 
 @app.get("/ready")
-async def ready() -> dict[str, Any]:
+async def ready() -> Dict[str, Any]:
     """
     Readiness check - verifica dependências.
     
     Usado pelo Kubernetes/Docker para saber se a aplicação
     está pronta para receber requisições.
     """
-    checks: dict[str, Any] = {
+    checks: Dict[str, Any] = {
         "status": "ready",
         "checks": {},
     }
@@ -195,7 +197,7 @@ async def ready() -> dict[str, Any]:
 # ==========================================
 
 @app.get("/debug/fsm")
-async def debug_fsm() -> dict[str, Any]:
+async def debug_fsm() -> Dict[str, Any]:
     """Debug: mostra estrutura da FSM."""
     if not settings.debug:
         return {"error": "Debug disabled"}
@@ -216,7 +218,7 @@ async def debug_fsm() -> dict[str, Any]:
 
 
 @app.get("/debug/guardrails")
-async def debug_guardrails(text: str = "sim") -> dict[str, Any]:
+async def debug_guardrails(text: str = "sim") -> Dict[str, Any]:
     """Debug: testa classificação de input."""
     if not settings.debug:
         return {"error": "Debug disabled"}

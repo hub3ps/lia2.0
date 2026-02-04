@@ -1,6 +1,8 @@
 """
 Utilitários do sistema.
 """
+from __future__ import annotations
+
 from app.utils.phone import (
     extract_ddd,
     format_phone_display,

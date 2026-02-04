@@ -2,8 +2,10 @@
 Configurações centralizadas da aplicação.
 Usa Pydantic Settings para validação e tipagem.
 """
+from __future__ import annotations
+
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -50,15 +52,15 @@ class Settings(BaseSettings):
     # Saipos (PDV) - Opcional em desenvolvimento
     # ==========================================
     saipos_base_url: str = "https://api.saipos.com"
-    saipos_partner_id: str | None = None
-    saipos_partner_secret: str | None = None
-    saipos_cod_store: str | None = None
-    saipos_display_id: str | None = None
+    saipos_partner_id: Optional[str] = None
+    saipos_partner_secret: Optional[str] = None
+    saipos_cod_store: Optional[str] = None
+    saipos_display_id: Optional[str] = None
     
     # ==========================================
     # Google Maps
     # ==========================================
-    google_maps_api_key: str | None = None
+    google_maps_api_key: Optional[str] = None
     
     # ==========================================
     # Configurações do Agente

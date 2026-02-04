@@ -1,6 +1,8 @@
 """
 Core module - Componentes fundamentais do sistema.
 """
+from __future__ import annotations
+
 from app.core.fsm import ConversationState, FSM, StateTransition
 from app.core.schemas import (
     CartItem,
